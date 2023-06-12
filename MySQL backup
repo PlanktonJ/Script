@@ -1,0 +1,33 @@
+## full backup
+
+user='username'
+password='password'
+dir=''
+mysqldump -p$user --password=$password --all-databases --flush-logs > $dir/fullbackup$(date +%d-%m-%Y-%H:%M).sql
+
+if [ $? -eq 0 ] ; then
+	echo " $(date +%d-%m-%Y-%H:%M) backup success" >> fullbackup.log
+else 
+	echo " $(date +%d-%m-%Y-%H:%M) backup failed" >> fullbackup.log
+fi
+## xóa backup cũ
+find $dir -name "fullbackup*.sql" -type f -mtime +7 -delete
+## set lại permission
+chmod 700 fullbackup*.sql
+
+
+## incremental backup 
+
+user="user"
+password="password"
+dir="
+
+mysqldump -u $user --password=$password --single-transaction --flush-logs --all-databases --master-data=2 > dir/Tlog$(date  +%d-%m-%Y-%H:%M).sql
+
+if [ $? -eq 0 ] ; then
+	echo " $(date +%d-%m-%Y-%H:%M) incremental successful" >> tlogbackup.log
+else 
+	echo " $(date +%d-%m-%Y-%H:%M) incremental failed" >> tlogbackup.log
+fi
+chmod 700 Tlog*.sql 
+
