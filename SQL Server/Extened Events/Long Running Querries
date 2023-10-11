@@ -1,5 +1,5 @@
 
-CREATE EVENT SESSION [Long-Running Queries] ON SERVER
+CREATE EVENT SESSION [Long-Running-Queries] ON SERVER
 ADD EVENT sqlserver.rpc_completed (
     ACTION ( sqlserver.client_app_name, sqlserver.client_hostname,
     sqlserver.database_id, sqlserver.database_name, sqlserver.nt_username,
@@ -28,5 +28,5 @@ WITH ( MAX_MEMORY = 4096 KB
       , TRACK_CAUSALITY = ON
       , STARTUP_STATE = ON );
 GO
-ALTER EVENT SESSION [Long-Running Queries] ON SERVER STATE=START;
+ALTER EVENT SESSION [Long-Running-Queries] ON SERVER STATE=START;
 GO 
