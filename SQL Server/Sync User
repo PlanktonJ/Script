@@ -1,0 +1,11 @@
+1. Add user [User] trên Primary 
+2. Query user info tren primary
+  SELECT N'CREATE LOGIN ['+sp.[name]+'] WITH PASSWORD=0x'+
+         CONVERT(nvarchar(max), l.password_hash, 2)+N' HASHED, '+
+         N'SID=0x'+CONVERT(nvarchar(max), sp.[sid], 2)+N';'
+     FROM master.sys.server_principals AS sp
+     INNER JOIN master.sys.sql_logins AS l ON sp.[sid]=l.[sid]
+     WHERE sp.name='[User]'
+	 
+3. Copy kết quả chạy trên second	 
+CREATE LOGIN [User] WITH PASSWORD=0x02008FECE31CC98E95A467D1681F285849C4CB476FB2C8DD5185EBFD4376BB931EE48DEA45E2BDE833C7084C8350E3D00E8EEF61F6EC381AA85BB3088D819E75953DBBC21103 HASHED, SID=0x2A571425C228D44F84A2583D75357710;
