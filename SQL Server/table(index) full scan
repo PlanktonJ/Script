@@ -1,0 +1,44 @@
+;WITH XMLNAMESPACES ('http://schemas.microsoft.com/sqlserver/2004/07/showplan' AS qp)
+SELECT decp.usecounts
+    , QueryPlan = deqp.query_plan
+    , TableScans = CONVERT(xml, 
+        (
+        SELECT ts.x.query('..') 
+        FROM deqp.query_plan.nodes('/qp:ShowPlanXML//qp:TableScan/qp:Object') ts(x) 
+        WHERE ts.x.exist('@Table[contains(., "@")]') = 0 --exclude scans of table variables
+            AND ts.x.exist('@Table[contains(., "#")]') = 0 --exclude scans of temp tables
+            AND ts.x.query('..').exist('//qp:SeekPredicates') = 0 --exlude seeks
+        FOR XML PATH (''), ROOT ('xml'))
+        )
+    , IndexScans = CONVERT(xml, 
+        (
+        SELECT ts.x.query('..') 
+        FROM deqp.query_plan.nodes('/qp:ShowPlanXML//qp:IndexScan/qp:Object') ts(x) 
+        WHERE ts.x.exist('@Table[contains(., "@")]') = 0 --exclude scans of table variables
+            AND ts.x.exist('@Table[contains(., "#")]') = 0 --exclude scans of temp tables
+            AND ts.x.query('..').exist('//qp:SeekPredicates') = 0 --exlude seeks
+        FOR XML PATH (''), ROOT ('xml'))
+        )
+FROM sys.dm_exec_cached_plans decp
+CROSS APPLY sys.dm_exec_query_plan(decp.plan_handle) deqp
+WHERE (
+    deqp.query_plan.exist('/qp:ShowPlanXML//qp:TableScan') = 1
+        AND EXISTS (
+            SELECT 1
+            FROM deqp.query_plan.nodes('/qp:ShowPlanXML//qp:TableScan/qp:Object') ts(x) 
+            WHERE ts.x.exist('@Table[contains(., "@")]') = 0 --exclude scans of table variables
+                AND ts.x.exist('@Table[contains(., "#")]') = 0 --exclude scans of temp tables
+                AND ts.x.query('..').exist('//qp:SeekPredicates') = 0 --exlude seeks
+            )
+    )
+    OR (
+    deqp.query_plan.exist('/qp:ShowPlanXML//qp:IndexScan') = 1
+        AND EXISTS (
+            SELECT 1
+            FROM deqp.query_plan.nodes('/qp:ShowPlanXML//qp:IndexScan/qp:Object') ts(x) 
+            WHERE ts.x.exist('@Table[contains(., "@")]') = 0 --exclude scans of table variables
+                AND ts.x.exist('@Table[contains(., "#")]') = 0 --exclude scans of temp tables
+                AND ts.x.query('..').exist('//qp:SeekPredicates') = 0 --exlude seeks
+            )
+    )
+ORDER BY decp.usecounts DESC;
