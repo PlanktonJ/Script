@@ -1,0 +1,10 @@
+SELECT s.host_name,
+       s.login_name,
+       input_buffer.event_info
+FROM sys.dm_exec_sessions AS s
+JOIN sys.dm_exec_requests AS r
+    ON r.session_id = s.session_id
+CROSS APPLY sys.dm_exec_input_buffer
+    (s.session_id, r.request_id) as input_buffer
+WHERE s.is_user_process = 1
+    AND r.query_hash =
